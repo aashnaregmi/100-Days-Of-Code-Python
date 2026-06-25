@@ -145,7 +145,7 @@ a = random.randint(0, len(celebrity_list) - 1)
 while True:
     b = random.randint(0, len(celebrity_list) - 1)
 
-    if a == b :
+    while a == b :
          b = random.randint(0, len(celebrity_list) - 1)
 
 
