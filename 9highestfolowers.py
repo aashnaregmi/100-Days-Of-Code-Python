@@ -1,4 +1,6 @@
 import random
+
+
 celebrity_list = [
     {
         "name": "Kylie Jenner",
@@ -75,7 +77,7 @@ celebrity_list = [
     {
         "name": "Balen Shah",
         "location": "Kathmandu, Nepal",
-        "work": "Mayor of Kathmandu, Rapper, Civil Engineer",
+        "work": "Prime Minister of Nepal, Rapper, Civil Engineer",
         "followers": 2_300_000
     },
     {
@@ -123,70 +125,62 @@ celebrity_list = [
 ]
 
 
-# for celebrity in celebrity_list:
-#     print(celebrity["name"])
-#     print(celebrity["location"])
-#     print(celebrity["followers"])
-#     print()
+def display_people(a,b):
 
+    print(" ")
+
+    print(f"Compare A: {celebrity_list[a]['name']}:{celebrity_list[a]['work']}")
+    print(f"Compare B: {celebrity_list[b]['name']}:{celebrity_list[b]['work']}")
+    print(" ")
+def increase_score(score):
+    return score+1
+
+
+
+
+
+score=0
+a = random.randint(0, len(celebrity_list) - 1)
 
 while True:
- score=0
- a = random.randint(0, len(celebrity_list) - 1)
-
- while True:
-    temp=-1
     b = random.randint(0, len(celebrity_list) - 1)
 
-    if a == b or b==temp:
-
-        b = random.randint(0, len(celebrity_list) - 1)
-
-    # print(a, b)
-
-    print(" ")
-
-    print(f"Compare A:{celebrity_list[a]["name"]},{celebrity_list[a]["work"],{celebrity_list[a]["work"]}}")
-    print(" ")
-
-    print(f"Compare B:{celebrity_list[b]["name"]},{celebrity_list[b]["work"],{celebrity_list[b]["work"]}}")
-    print(" ")
+    if a == b :
+         b = random.randint(0, len(celebrity_list) - 1)
 
 
+    display_people(a,b)
 
     guess=input("Guess (A OR B):").lower()
 
-
-
-    max_follower=max(
+    max_follower = max(
 
         (celebrity_list[a]["followers"]),
 
         (celebrity_list[b]["followers"])
-
     )
 
-
-
-    if guess=="a" and celebrity_list[a]["followers"]==max_follower:
+    if guess == "a" and celebrity_list[a]["followers"] == max_follower:
 
         print("You are correct")
-        score+=1
+        score=increase_score(score)
         print(f"Score:{score}")
 
     elif guess == "b" and celebrity_list[b]["followers"] == max_follower:
 
         print("You are correct")
-        score+=1
+        score = increase_score(score)
         print(f"Score:{score}")
+
+
 
     else:
 
         print("You are wrong")
-
         break
-    temp=a
-    a=b
 
- break
+    a = b
+
+
+
 
