@@ -2,10 +2,9 @@
 import random
 
 choosen_num=random.randint(1,100)
-print(choosen_num)
 def makeguess(attempts):
         attempt=attempts
-        while attempt != 0:
+        while attempt > 0:
               print(f"You have {attempt} attempts")
               global choosen_num
               guess=int(input("Make a guess :"))
@@ -28,6 +27,10 @@ def makeguess(attempts):
 while True:
     easy=10
     hard=5
+    print(" ")
+    print("Welcome to my number guessing game!!")
+    print(" ")
+
     level=input("Choose a difficulty level: ")
     
     if level=="easy":
