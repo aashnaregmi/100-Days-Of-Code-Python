@@ -1,76 +1,29 @@
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from fastapi import Depends
+from fastapi import FastAPI, Depends
+
+from schemas import ExpenseInfo, ExpenseResponse
+
+from exceptions import (
+    ExpenseNotFoundException,
+    InvalidAmountException,
+    CategoryNotFoundException,
+)
+from handlers import (
+    expense_not_found_handler,
+    invalid_amount_handler,
+    invalid_category_handler,
+)
+from dependencies import get_current_user
 
 app = FastAPI()
 id = 1
 
-
-# responsemodel rn just for undertanding
-class ExpenseResponse(BaseModel):
-    id: int
-    title: str
-    amount: float
+app.add_exception_handler(ExpenseNotFoundException, expense_not_found_handler)
 
 
-# nested pydantic
-class ExpenseDetail(BaseModel):
-    category: str
-    description: str
+app.add_exception_handler(InvalidAmountException, invalid_amount_handler)
 
 
-class ExpenseInfo(BaseModel):
-    title: str
-    amount: float
-    detail: ExpenseDetail
-
-
-# custom exceptiom
-class ExpenseNotFoundException(Exception):
-    def __init__(self, expense_id):
-        self.expense_id = expense_id
-
-
-@app.exception_handler(ExpenseNotFoundException)
-async def expense_not_found_handler(request: Request, exc: ExpenseNotFoundException):
-    return JSONResponse(
-        status_code=404,
-        content={"message": f"Expense with id {exc.expense_id} not found"},
-    )
-
-
-class InvalidAmountException(Exception):
-    def __init__(self, amount):
-        self.amount = amount
-
-
-@app.exception_handler(InvalidAmountException)
-async def invalid_amount_handler(request: Request, exc: InvalidAmountException):
-    return JSONResponse(
-        status_code=400,
-        content={
-            "message": f"Invalid amount: {exc.amount}. Amount must be greater than 0"
-        },
-    )
-
-
-class CategoryNotFoundException(Exception):
-    def __init__(self, category):
-        self.category = category
-
-
-@app.exception_handler(CategoryNotFoundException)
-async def invalid_category_handler(request: Request, exc: CategoryNotFoundException):
-    return JSONResponse(
-        status_code=400,
-        content={"message": f"Category:{exc.category} not found"},
-    )
-
-
-# Fake User Authentication for now learning purpose
-def get_current_user():
-    return {"username": "Ashna", "role": "admin"}
+app.add_exception_handler(CategoryNotFoundException, invalid_category_handler)
 
 
 expenses = []
