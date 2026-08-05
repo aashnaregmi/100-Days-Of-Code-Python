@@ -13,6 +13,7 @@ from handlers import (
     invalid_category_handler,
 )
 from dependencies import get_current_user
+from middleware import register_middleware
 
 app = FastAPI()
 id = 1
@@ -25,6 +26,7 @@ app.add_exception_handler(InvalidAmountException, invalid_amount_handler)
 
 app.add_exception_handler(CategoryNotFoundException, invalid_category_handler)
 
+register_middleware(app)
 
 expenses = []
 
