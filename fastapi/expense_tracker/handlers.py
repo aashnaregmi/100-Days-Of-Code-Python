@@ -4,7 +4,6 @@ from fastapi.responses import JSONResponse
 
 from exceptions import (
     ExpenseNotFoundException,
-    InvalidAmountException,
     CategoryNotFoundException,
 )
 
@@ -18,15 +17,6 @@ async def expense_not_found_handler(request: Request, exc: ExpenseNotFoundExcept
     return JSONResponse(
         status_code=404,
         content={"message": f"Expense with id {exc.expense_id} not found"},
-    )
-
-
-async def invalid_amount_handler(request: Request, exc: InvalidAmountException):
-    return JSONResponse(
-        status_code=400,
-        content={
-            "message": f"Invalid amount: {exc.amount}. Amount must be greater than 0"
-        },
     )
 
 

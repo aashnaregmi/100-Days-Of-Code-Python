@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 # Nested model
@@ -10,7 +10,7 @@ class ExpenseDetail(BaseModel):
 # Request model (data coming from client)
 class ExpenseInfo(BaseModel):
     title: str
-    amount: float
+    amount: float = Field(gt=0)
     detail: ExpenseDetail
 
 

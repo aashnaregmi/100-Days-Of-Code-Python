@@ -4,12 +4,10 @@ from schemas import ExpenseInfo, ExpenseResponse
 
 from exceptions import (
     ExpenseNotFoundException,
-    InvalidAmountException,
     CategoryNotFoundException,
 )
 from handlers import (
     expense_not_found_handler,
-    invalid_amount_handler,
     invalid_category_handler,
 )
 from dependencies import get_current_user
@@ -24,9 +22,6 @@ app = FastAPI()
 id = 1
 
 app.add_exception_handler(ExpenseNotFoundException, expense_not_found_handler)
-
-
-app.add_exception_handler(InvalidAmountException, invalid_amount_handler)
 
 
 app.add_exception_handler(CategoryNotFoundException, invalid_category_handler)
@@ -59,34 +54,9 @@ def home(userinfo=Depends(get_current_user)):
     }
 
 
-# @app.post("/expenses")
-# def add_expense(expense: ExpenseInfo, db: Session = Depends(get_db)):
-#     if expense.amount <= 0:
-#         raise InvalidAmountException(expense.amount)
-
-#     data = {
-#         "id": id,
-#         "title": expense.title,
-#         "amount": expense.amount,
-#         "detail": {
-#             "category": expense.detail.category,
-#             "description": expense.detail.description,
-#         },
-#     }
-#     # expenses.append(data)
-#     db.add(data)
-#     db.commit()
-
-#     db.refresh(data)
-
-#     return {"message": "Expense added successfully", "expense": expense}
-
-
 @app.post("/expenses")
 def add_expense(expense: ExpenseInfo, db: Session = Depends(get_db)):
     global id
-    if expense.amount <= 0:
-        raise InvalidAmountException(expense.amount)
 
     expense_db = Expense(
         title=expense.title,
@@ -106,32 +76,38 @@ def add_expense(expense: ExpenseInfo, db: Session = Depends(get_db)):
 # get all or filter
 @app.get("/expenses")
 def get_expenses(
-    category: str = None, db: Session = Depends(get_db)
-):  # if category none then all else according to category
+    expense_id: int = None, category: str = None, db: Session = Depends(get_db)
+):
+    if expense_id:
+        expense_db = db.query(Expense).filter(Expense.id == expense_id).first()
+        if not expense_db:
+            raise ExpenseNotFoundException(expense_id)
+        return expense_db
+
+    # if category none then all else according to category
+
     if category:
-        if category:
-            expenses_db = db.query(Expense).filter(Expense.category == category).all()
-            if len(expenses_db) == 0:  # if ntg in filtered or is empty
-                raise CategoryNotFoundException(category)
+        expenses_db = db.query(Expense).filter(Expense.category == category).all()
+        if len(expenses_db) == 0:  # if ntg in filtered or is empty
+            raise CategoryNotFoundException(category)
         return expenses_db
 
     return db.query(Expense).all()
 
 
-@app.get("/expenses/{expense_id}")
-def get_expense(expense_id: int, db: Session = Depends(get_db)):
-    expense_db = db.query(Expense).filter(Expense.id == expense_id).first()
-    if not expense_db:
-        raise ExpenseNotFoundException(expense_id)
-    return expense_db
+# @app.get("/expenses/{expense_id}")
+# def get_expense(expense_id: int, db: Session = Depends(get_db)):
+#     expense_db = db.query(Expense).filter(Expense.id == expense_id).first()
+#     if not expense_db:
+#         raise ExpenseNotFoundException(expense_id)
+#     return expense_db
 
 
 @app.put("/expenses/{expense_id}")
 def update_expenses(
     expense_id: int, expenseinfo: ExpenseInfo, db: Session = Depends(get_db)
 ):
-    if expenseinfo.amount <= 0:
-        raise InvalidAmountException(expenseinfo.amount)
+
     expense_db = db.query(Expense).filter(Expense.id == expense_id).first()
     if not expense_db:
         raise ExpenseNotFoundException(expense_id)
@@ -144,15 +120,23 @@ def update_expenses(
     return {"message": "Expense updated successfully"}
 
 
-@app.delete("/expenses/{expense_id}")
-def delete_expense(expense_id: int, db: Session = Depends(get_db)):
-    expense_db = db.query(Expense).filter(Expense.id == expense_id).first()
-    if not expense_db:
-        raise ExpenseNotFoundException(expense_id)
-    db.delete(expense_db)
-    db.commit()
-
-    return {"message": f"Id :{expense_id} deleted successfully"}
+@app.delete("/expenses")
+def delete_expense(expense_id: int = None, db: Session = Depends(get_db)):
+    if expense_id:
+        expense_db = db.query(Expense).filter(Expense.id == expense_id).first()
+        if not expense_db:
+            raise ExpenseNotFoundException(expense_id)
+        db.delete(expense_db)
+        db.commit()
+        return {"message": f"Id :{expense_id} deleted successfully"}
+    else:
+        expense_db_all = db.query(Expense).all()
+        if not expense_db_all:
+            return {"message": "No expenses found"}
+        for expense in expense_db_all:
+            db.delete(expense)
+        db.commit()
+        return {"message": f"All deleted successfully"}
 
 
 @app.get("/expense/total")
