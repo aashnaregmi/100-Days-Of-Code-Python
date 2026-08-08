@@ -14,12 +14,13 @@ from dependencies import get_current_user
 from middleware import register_middleware
 from databasefolder.database import Base, SessionLocal, engine
 from databasefolder.models import Expense
+from sqlalchemy import text
 
 Base.metadata.create_all(bind=engine)
 
 
 app = FastAPI()
-id = 1
+
 
 app.add_exception_handler(ExpenseNotFoundException, expense_not_found_handler)
 
@@ -37,16 +38,6 @@ def get_db():
         db.close()
 
 
-@app.get(
-    "/responsemodel", response_model=list[ExpenseResponse]
-)  # list as we ar handling multiple data
-def responsemodel(db: Session = Depends(get_db)):
-
-    expenses = db.query(Expense).all()
-
-    return expenses
-
-
 @app.get("/")
 def home(userinfo=Depends(get_current_user)):
     return {
@@ -54,9 +45,8 @@ def home(userinfo=Depends(get_current_user)):
     }
 
 
-@app.post("/expenses")
+@app.post("/expenses", response_model=ExpenseResponse)
 def add_expense(expense: ExpenseInfo, db: Session = Depends(get_db)):
-    global id
 
     expense_db = Expense(
         title=expense.title,
@@ -68,13 +58,12 @@ def add_expense(expense: ExpenseInfo, db: Session = Depends(get_db)):
     db.add(expense_db)
     db.commit()
     db.refresh(expense_db)
-    id += 1
 
-    return {"message": "Expense added successfully", "expense": expense_db}
+    return expense_db
 
 
 # get all or filter
-@app.get("/expenses")
+@app.get("/expenses", response_model=list[ExpenseResponse])
 def get_expenses(
     expense_id: int = None, category: str = None, db: Session = Depends(get_db)
 ):
@@ -122,6 +111,7 @@ def update_expenses(
 
 @app.delete("/expenses")
 def delete_expense(expense_id: int = None, db: Session = Depends(get_db)):
+
     if expense_id:
         expense_db = db.query(Expense).filter(Expense.id == expense_id).first()
         if not expense_db:
@@ -130,13 +120,12 @@ def delete_expense(expense_id: int = None, db: Session = Depends(get_db)):
         db.commit()
         return {"message": f"Id :{expense_id} deleted successfully"}
     else:
-        expense_db_all = db.query(Expense).all()
-        if not expense_db_all:
-            return {"message": "No expenses found"}
-        for expense in expense_db_all:
-            db.delete(expense)
+        # Delete ALL expenses
+        db.execute(text("TRUNCATE TABLE expenses RESTART IDENTITY"))
+
         db.commit()
-        return {"message": f"All deleted successfully"}
+
+        return {"message": "All expenses deleted successfully"}
 
 
 @app.get("/expense/total")
