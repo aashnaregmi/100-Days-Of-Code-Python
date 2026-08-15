@@ -1,6 +1,6 @@
-# 🚀 100 Days of Code – Python
+# 🚀  Python Projects
 
-Welcome to my **100 Days of Code** journey! 👋
+Welcome to my **Python** journey! 👋
 
 This repository contains **all of my daily Python projects . Rather than creating a separate repository for every small project, I maintain this repository as a complete record of my growth throughout the challenge.
 
